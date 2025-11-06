@@ -72,14 +72,29 @@ func (r *loggerRegistry) buildLogger(name string, skipCaller uint8) *zap.Sugared
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	})
+	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+		MessageKey:     "message",
+		LevelKey:       "level",
+		TimeKey:        "time",
+		NameKey:        "logger",
+		CallerKey:      "line",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     newTimeEncoder(r.cfgFn),
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	})
 
 	infoWriter, _ := newInfoWriter(cfg, logFilePath("%s_info.log", name))
 
 	errorWriter := r.ensureErrorWriter(cfg)
+	consoleWriter := zapcore.AddSync(os.Stdout)
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(encoder, zapcore.AddSync(infoWriter), r.level),
 		zapcore.NewCore(encoder, zapcore.AddSync(errorWriter), zapcore.ErrorLevel),
+		zapcore.NewCore(consoleEncoder, consoleWriter, r.level),
 	)
 
 	caller := []zap.Option{zap.AddCaller()}
