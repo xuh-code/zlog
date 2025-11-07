@@ -1,4 +1,4 @@
-module github.com/Xuzan9396/zlog
+module github.com/xuh-code/zlog
 
 go 1.16
 
