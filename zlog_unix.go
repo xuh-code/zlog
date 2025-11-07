@@ -5,6 +5,7 @@ package zlog
 
 import (
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func newErrorWriter(cfg Config, fileName string) (zapcore.WriteSyncer, error) {
 
 // SetZapOut 将标准库 log 输出重定向到滚动日志。
 func (m *Manager) SetZapOut(fileName string) error {
-	//cfg := m.getConfig()
+	cfg := m.getConfig()
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
@@ -52,14 +53,14 @@ func (m *Manager) SetZapOut(fileName string) error {
 	)
 	var w zapcore.WriteSyncer
 	// 支持通过 Env 或 Level 来控制终端输出
-	//if cfg.Env == ENV_DEBUG || cfg.Level == zapcore.DebugLevel {
-	//w, err = zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(fileWriter)), err
-	if err != nil {
-		return err
+	if cfg.Env == ENV_DEBUG || cfg.Level == zapcore.DebugLevel {
+		w, err = zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(fileWriter)), err
+		if err != nil {
+			return err
+		}
+	} else {
+		w = zapcore.AddSync(fileWriter)
 	}
-	//} else {
-	w = zapcore.AddSync(fileWriter)
-	//}
 	log.SetOutput(w)
 	return nil
 }
